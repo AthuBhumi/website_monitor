@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Cyber Analytics{% endblock %}
+
+{% block extra_head %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Add GridStack CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/gridstack@4.0.0/dist/h5/gridstack.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/gridstack@4.0.0/dist/h5/gridstack.all.js"></script>
+
+    <style>
+        canvas {
+            background-color: #111;
+            border: 1px solid #0ff;
+            padding: 10px;
+            margin-bottom: 30px;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<h2>🛡️ Cyber Monitoring Analytics</h2>
+
+<!-- GridStack Layout for Draggable Items -->
+<div class="grid-stack">
+    <div class="grid-stack-item" data-gs-x="0" data-gs-y="0" data-gs-width="6" data-gs-height="6">
+        <div class="grid-stack-item-content">
+            <canvas id="loadChart" width="400" height="200"></canvas>
+        </div>
+    </div>
+    <div class="grid-stack-item" data-gs-x="6" data-gs-y="0" data-gs-width="6" data-gs-height="6">
+        <div class="grid-stack-item-content">
+            <canvas id="alertChart" width="400" height="200"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Other Content -->
+
+<script>
+    // Initialize GridStack (this makes the widgets draggable and resizable)
+    GridStack.init();
+
+    const labels = {{ labels | tojson }};
+    const loadData = {{ load_times | tojson }};
+    const alertData = {{ alerts_count | tojson }};
+
+    // Load Time Chart
+    new Chart(document.getElementById("loadChart"), {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Load Time (sec)',
+                data: loadData,
+                borderColor: '#0ff',
+                backgroundColor: 'rgba(0,255,255,0.1)',
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { labels: { color: '#0ff' } }
+            },
+            scales: {
+                x: { ticks: { color: '#0ff' }},
+                y: { ticks: { color: '#0ff' }}
+            }
+        }
+    });
+
+    // Alerts Chart
+    new Chart(document.getElementById("alertChart"), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Security Alerts Count',
+                data: alertData,
+                backgroundColor: 'rgba(255,0,0,0.7)',
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { labels: { color: '#f44' } }
+            },
+            scales: {
+                x: { ticks: { color: '#f44' }},
+                y: { ticks: { color: '#f44' }}
+            }
+        }
+    });
+</script>
+
+{% endblock %}

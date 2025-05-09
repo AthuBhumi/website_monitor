@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Website Monitor{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">🌐 Website Monitoring & Security Scan</h2>
+    
+    <form method="POST">
+        <div class="mb-3">
+            <input type="text" name="url" class="form-control" placeholder="Enter website URL (e.g. https://example.com)" required>
+        </div>
+        <button type="submit" class="btn btn-outline-info">🔍 Scan Website</button>
+    </form>
+
+    {% if results %}
+        <hr class="my-4">
+        <h4>Results for: <code>{{ results.url }}</code></h4>
+
+        {% if results.error %}
+            <div class="alert alert-danger mt-3">{{ results.error }}</div>
+        {% else %}
+            <ul class="list-group mb-3">
+                <li class="list-group-item"><strong>Title:</strong> {{ results.title }}</li>
+                <li class="list-group-item"><strong>Status Code:</strong> {{ results.status_code }}</li>
+                <li class="list-group-item"><strong>Load Time:</strong> {{ results.load_time }} seconds</li>
+                <li class="list-group-item">
+                    <strong>Security Alerts:</strong>
+                    {% if results.security_alerts %}
+                        <ul class="mt-2 mb-0 text-danger">
+                            {% for alert in results.security_alerts %}
+                            <li>{{ alert }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <span class="text-success">None</span>
+                    {% endif %}
+                </li>
+            </ul>
+
+            {% if results.alert %}
+                <div class="alert alert-warning">⚠️ Suspicious activity detected!</div>
+            {% else %}
+                <div class="alert alert-success">✅ Website appears safe.</div>
+            {% endif %}
+        {% endif %}
+    {% endif %}
+</div>
+{% endblock %}

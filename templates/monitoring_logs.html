@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block title %}Monitoring Logs{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/gridstack@4.0.0/dist/h5/gridstack.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/gridstack@4.0.0/dist/h5/gridstack.all.js"></script>
+<style>
+    canvas {
+        background-color: #111;
+        border: 1px solid #0ff;
+        padding: 10px;
+        margin-bottom: 30px;
+    }
+    .container {
+        margin-top: 50px;
+    }
+    h2 {
+        font-size: 30px;
+        color: #ecf0f1;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 40px;
+    }
+    .row {
+        display: flex;
+        justify-content: space-around;
+        flex-wrap: wrap;
+    }
+    .col-md-6 {
+        flex: 1;
+        margin: 10px;
+        min-width: 300px;
+    }
+    .col-md-12 {
+        width: 100%;
+        margin: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+
+<div class="container">
+    
+
+    <!-- Section for monitoring logs table -->
+    <div class="row">
+        <div class="col-md-12">
+            <h3>Monitoring Logs</h3>
+            <table class="table table-bordered table-striped table-dark">
+                <thead>
+                    <tr>
+                        <th>URL</th>
+                        <th>Title</th>
+                        <th>Status</th>
+                        <th>Load Time</th>
+                        <th>Alerts</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for result in logs %}
+                    <tr>
+                        <td>{{ result.url }}</td>
+                        <td>{{ result.title }}</td>
+                        <td>{{ result.status_code }}</td>
+                        <td>{{ result.load_time }}</td>
+                        <td>
+                            {% if result.security_alerts %}
+                            <span class="text-danger">{{ result.security_alerts }}</span>
+                            {% else %}
+                            <span class="text-success">None</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+</div>
+
+<script>
+    // Injected JSON data from backend using Jinja2 templating
+    const labels = {{ labels | default([]) | tojson }};
+    const loadData = {{ load_times | default([]) | tojson }};
+    const alertData = {{ alerts_count | default([]) | tojson }};
+
+    // Load Time Chart (Line chart)
+    new Chart(document.getElementById("loadChart"), {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Load Time (sec)',
+                data: loadData,
+                borderColor: '#0ff',
+                backgroundColor: 'rgba(0,255,255,0.1)',
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { labels: { color: '#0ff' } }
+            },
+            scales: {
+                x: { ticks: { color: '#0ff' } },
+                y: { ticks: { color: '#0ff' } }
+            }
+        }
+    });
+
+    // Security Alerts Chart (Bar chart)
+    new Chart(document.getElementById("alertChart"), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Security Alerts Count',
+                data: alertData,
+                backgroundColor: 'rgba(255,0,0,0.7)',
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { labels: { color: '#f44' } }
+            },
+            scales: {
+                x: { ticks: { color: '#f44' } },
+                y: { ticks: { color: '#f44' } }
+            }
+        }
+    });
+</script>
+<!-- 🔔 Security Alert Toast -->
+<div class="toast-container position-fixed top-0 end-0 p-3">
+    <div id="alertToast" class="toast text-bg-danger" role="alert">
+      <div class="toast-header bg-danger text-white">
+        <strong class="me-auto">Security Alert</strong>
+      </div>
+      <div class="toast-body" id="alertMessage">
+        Critical alert detected on: {{ recent_alert_url }}
+      </div>
+    </div>
+  </div>
+  
+  <script>
+  window.onload = function() {
+    {% if recent_alert %}
+    const toastLive = document.getElementById('alertToast');
+    new bootstrap.Toast(toastLive).show();
+    {% endif %}
+  }
+  </script>
+  
+  
+{% endblock %}
+

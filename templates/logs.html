@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}Cyber Analytics{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    canvas {
+        background-color: #111;
+        border: 1px solid #0ff;
+        padding: 10px;
+        margin-bottom: 30px;
+    }
+    .container {
+        margin-top: 50px;
+    }
+    h2 {
+        font-size: 30px;
+        color: #ecf0f1;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 40px;
+    }
+    .row {
+        display: flex;
+        justify-content: space-around;
+    }
+    .col-md-6 {
+        flex: 1;
+        margin: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h2>🛡️ Cyber Monitoring Analytics</h2>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-6">
+            <canvas id="loadChart" width="400" height="200"></canvas>
+        </div>
+        <div class="col-md-6">
+            <canvas id="alertChart" width="400" height="200"></canvas>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <canvas id="securityChart" width="400" height="200"></canvas>
+        </div>
+    </div>
+</div>
+
+<script>
+    const labels = {{ labels | tojson }};
+    const loadData = {{ load_times | tojson }};
+    const alertData = {{ alerts_count | tojson }};
+    const securityData = {{ security_data | tojson }};
+
+    // Load Time Chart (Line chart)
+    new Chart(document.getElementById("loadChart"), {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Load Time (sec)',
+                data: loadData,
+                borderColor: '#0ff',
+                backgroundColor: 'rgba(0,255,255,0.1)',
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { labels: { color: '#0ff' } }
+            },
+            scales: {
+                x: { ticks: { color: '#0ff' }},
+                y: { ticks: { color: '#0ff' }}
+            }
+        }
+    });
+
+    // Security Alerts Chart (Bar chart)
+    new Chart(document.getElementById("alertChart"), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Security Alerts Count',
+                data: alertData,
+                backgroundColor: 'rgba(255,0,0,0.7)',
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { labels: { color: '#f44' } }
+            },
+            scales: {
+                x: { ticks: { color: '#f44' }},
+                y: { ticks: { color: '#f44' }}
+            }
+        }
+    });
+
+    // Security Data Chart (Radar chart)
+    new Chart(document.getElementById("securityChart"), {
+        type: 'radar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Security Assessment',
+                data: securityData,
+                borderColor: '#ff6347',
+                backgroundColor: 'rgba(255,99,71,0.3)',
+                pointBackgroundColor: '#ff6347'
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                r: {
+                    angleLines: { color: '#fff' },
+                    grid: { color: '#444' },
+                    ticks: { color: '#fff' }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
