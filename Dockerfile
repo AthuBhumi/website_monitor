@@ -29,9 +29,7 @@ RUN apt-get update && \
     libffi-dev \
     libssl-dev \
     libatlas-base-dev \
-    libboost-python-dev \
-    libboost-thread-dev \
-    && apt-get clean && \
+       && apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 # Create a non-privileged user that the app will run under.
