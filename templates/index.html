@@ -5,14 +5,38 @@
 {% block content %}
 <div class="container mt-5">
     <h2 class="mb-4">🌐 Website Monitoring & Security Scan</h2>
+
+    tars.co.in
     
     <form method="POST">
         <div class="mb-3">
-            <input type="text" name="url" class="form-control" placeholder="Enter website URL (e.g. https://example.com)" required>
+            <!-- <input type="text" name="url" class="form-control" placeholder="Enter website URL (e.g. https://example.com)" required> -->
         </div>
-        <button type="submit" class="btn btn-outline-info">🔍 Scan Website</button>
+        <!-- <button type="submit" class="btn btn-outline-info">🔍 Scan Website</button> -->
+          <button id="scanBtn" type="submit" class="btn btn-outline-info">🔍 Scan Website</button>
     </form>
+<script>
+    function fetchScan() {
+            fetch('/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({})  // You can send additional data here if needed
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('results').textContent = JSON.stringify(data, null, 2);
+            })
+            .catch(error => {
+                console.error("Scan failed:", error);
+            });
+        }
 
+// Call initially and then every 5 seconds
+fetchScan();
+setInterval(fetchScan, 1000);
+</script>
     {% if results %}
         <hr class="my-4">
         <h4>Results for: <code>{{ results.url }}</code></h4>

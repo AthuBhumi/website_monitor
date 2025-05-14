@@ -1,13 +1,14 @@
 from flask import Flask, render_template, request
 from monitor import scan_website
 from apscheduler.schedulers.background import BackgroundScheduler
+from flask_socketio import SocketIO
 import logging
 import datetime
 # Initialize Flask app
 app = Flask(__name__)
 
 # List of websites to auto-monitor
-monitored_websites = ["https://example.com", "https://yourapp.com"]
+monitored_websites = ["https://tars.co.in", "https://tarstech.in"]
 scan_results = []
 
 # Set up logging for monitoring
@@ -38,7 +39,7 @@ scheduler.start()
 def index():
     results = None
     if request.method == 'POST':
-        url = request.form['url']
+        url = "https://tars.co.in"
         logging.info(f"Manual scan initiated for {url}")
         results = scan_website(url)
         scan_results.append(results)  # Append result to global list
@@ -60,7 +61,7 @@ def analytics():
     trend_labels = ['10 AM', '11 AM', '12 PM']
     trend_values = [1.2, 1.5, 1.3]
     recent_alert = True
-    recent_alert_url = "https://example.com/alert-page"
+    recent_alert_url = "https://tars.co.in/alert-page"
     # existing data
     with open('attack_logs.txt', 'r') as f:
         suspicious_logs = f.read()

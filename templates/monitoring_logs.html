@@ -42,15 +42,38 @@
 
 {% block content %}
 
-
 <div class="container">
-    
 
-    <!-- Section for monitoring logs table -->
+    <!-- Filters and Search -->
+    <div class="row mb-3">
+        <div class="col-md-3">
+            <select class="form-select" id="statusFilter">
+                <option value="">Filter by Status</option>
+                <option value="200">200 OK</option>
+                <option value="404">404 Not Found</option>
+                <option value="500">500 Server Error</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <select class="form-select" id="alertFilter">
+                <option value="">All Logs</option>
+                <option value="alerts">Only with Alerts</option>
+                <option value="no_alerts">No Alerts</option>
+            </select>
+        </div>
+        <div class="col-md-4">
+            <input type="text" id="searchInput" class="form-control" placeholder="Search URL or Title">
+        </div>
+        <div class="col-md-2 text-end">
+            <button class="btn btn-sm btn-outline-info" onclick="downloadCSV()">⬇️ Export CSV</button>
+        </div>
+    </div>
+
+    <!-- Logs Table -->
     <div class="row">
         <div class="col-md-12">
             <h3>Monitoring Logs</h3>
-            <table class="table table-bordered table-striped table-dark">
+            <table class="table table-bordered table-striped table-dark" id="logsTable">
                 <thead>
                     <tr>
                         <th>URL</th>
@@ -80,16 +103,31 @@
             </table>
         </div>
     </div>
-    
+
 </div>
 
+<!-- Charts -->
+
+
+<!-- Toast Notification -->
+<div class="toast-container position-fixed top-0 end-0 p-3">
+    <div id="alertToast" class="toast text-bg-danger" role="alert">
+        <div class="toast-header bg-danger text-white">
+            <strong class="me-auto">Security Alert</strong>
+        </div>
+        <div class="toast-body" id="alertMessage">
+            Critical alert detected on: {{ recent_alert_url }}
+        </div>
+    </div>
+</div>
+
+<!-- JS Scripts -->
 <script>
-    // Injected JSON data from backend using Jinja2 templating
     const labels = {{ labels | default([]) | tojson }};
     const loadData = {{ load_times | default([]) | tojson }};
     const alertData = {{ alerts_count | default([]) | tojson }};
 
-    // Load Time Chart (Line chart)
+    // Load Time Chart
     new Chart(document.getElementById("loadChart"), {
         type: 'line',
         data: {
@@ -104,9 +142,7 @@
         },
         options: {
             responsive: true,
-            plugins: {
-                legend: { labels: { color: '#0ff' } }
-            },
+            plugins: { legend: { labels: { color: '#0ff' } } },
             scales: {
                 x: { ticks: { color: '#0ff' } },
                 y: { ticks: { color: '#0ff' } }
@@ -114,7 +150,7 @@
         }
     });
 
-    // Security Alerts Chart (Bar chart)
+    // Security Alerts Chart
     new Chart(document.getElementById("alertChart"), {
         type: 'bar',
         data: {
@@ -127,37 +163,69 @@
         },
         options: {
             responsive: true,
-            plugins: {
-                legend: { labels: { color: '#f44' } }
-            },
+            plugins: { legend: { labels: { color: '#f44' } } },
             scales: {
                 x: { ticks: { color: '#f44' } },
                 y: { ticks: { color: '#f44' } }
             }
         }
     });
-</script>
-<!-- 🔔 Security Alert Toast -->
-<div class="toast-container position-fixed top-0 end-0 p-3">
-    <div id="alertToast" class="toast text-bg-danger" role="alert">
-      <div class="toast-header bg-danger text-white">
-        <strong class="me-auto">Security Alert</strong>
-      </div>
-      <div class="toast-body" id="alertMessage">
-        Critical alert detected on: {{ recent_alert_url }}
-      </div>
-    </div>
-  </div>
-  
-  <script>
-  window.onload = function() {
-    {% if recent_alert %}
-    const toastLive = document.getElementById('alertToast');
-    new bootstrap.Toast(toastLive).show();
-    {% endif %}
-  }
-  </script>
-  
-  
-{% endblock %}
 
+    // Show Toast if recent_alert is True
+    window.onload = function () {
+        {% if recent_alert %}
+        const toastLive = document.getElementById('alertToast');
+        new bootstrap.Toast(toastLive).show();
+        {% endif %}
+    }
+
+    // Filter & Search Logic
+    document.getElementById("statusFilter").addEventListener("change", filterTable);
+    document.getElementById("alertFilter").addEventListener("change", filterTable);
+    document.getElementById("searchInput").addEventListener("keyup", filterTable);
+
+    function filterTable() {
+        const statusVal = document.getElementById("statusFilter").value;
+        const alertVal = document.getElementById("alertFilter").value;
+        const searchVal = document.getElementById("searchInput").value.toLowerCase();
+        const rows = document.querySelectorAll("#logsTable tbody tr");
+
+        rows.forEach(row => {
+            const status = row.cells[2].innerText.trim();
+            const alerts = row.cells[4].innerText.trim().toLowerCase();
+            const url = row.cells[0].innerText.toLowerCase();
+            const title = row.cells[1].innerText.toLowerCase();
+
+            const matchStatus = !statusVal || status === statusVal;
+            const matchAlert = !alertVal ||
+                (alertVal === 'alerts' && alerts !== 'none') ||
+                (alertVal === 'no_alerts' && alerts === 'none');
+            const matchSearch = url.includes(searchVal) || title.includes(searchVal);
+
+            if (matchStatus && matchAlert && matchSearch) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+        });
+    }
+
+    // Download CSV
+    function downloadCSV() {
+        const table = document.getElementById("logsTable");
+        let csv = [];
+        for (let row of table.rows) {
+            let cols = Array.from(row.cells).map(cell => `"${cell.innerText}"`);
+            csv.push(cols.join(","));
+        }
+        const blob = new Blob([csv.join("\n")], { type: 'text/csv' });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "monitoring_logs.csv";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+</script>
+
+{% endblock %}
