@@ -8,7 +8,7 @@ import datetime
 app = Flask(__name__)
 
 # List of websites to auto-monitor
-monitored_websites = ["https://tars.co.in", "https://tarstech.in"]
+monitored_websites = ["https://tars.co.in", "https://tars.co.in"]
 scan_results = []
 
 # Set up logging for monitoring
