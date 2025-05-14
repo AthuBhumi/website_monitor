@@ -103,9 +103,9 @@ RUN adduser \
 COPY requirements.txt .
 
 # Use BuildKit cache for pip (Railway supports it)
-RUN --mount=type=cache,target=/root/.cache/pip,id=build-cache-pip,sharing=shared \
-    pip install -r requirements.txt
-
+# RUN --mount=type=cache,target=/root/.cache/pip,id=build-cache-pip,sharing=shared \
+#     pip install -r requirements.txt
+RUN pip install -r requirements.txt
 # Copy full project code
 COPY . .
 
